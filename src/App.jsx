@@ -9,7 +9,7 @@ const defaultSettings = {
   date: 'March 17, 2026',
   title: 'EVENT TITLE GOES HERE · BASUD PESO',
   location: 'Brgy. Location · Basud, Camarines Norte',
-  tagline: 'Alay sa Trabaho, Alay sa Bayan',
+  tagline: 'SEBISYONG BASUDEÑO',
   social: '@basudpeso',
   brand: 'PESO',
   brandSub: 'Public Employment Service Office',
