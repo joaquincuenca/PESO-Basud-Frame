@@ -5,11 +5,13 @@ import { FramePreview } from './components/FramePreview'
 import { exportToPng } from './utils/exportPng'
 
 const defaultSettings = {
-  logo1: null, logo2: null,
+  logo1: '/logo1.png',
+  logo2: '/logo2.png',
+  logo3: '/logo3.png',
   date: 'March 17, 2026',
   title: 'EVENT TITLE GOES HERE · BASUD PESO',
   location: 'Brgy. Location · Basud, Camarines Norte',
-  tagline: 'SEBRISYONG BASUDEÑO',
+  tagline: 'SERBISYONG BASUDEÑO',
   social: '@basudpeso',
   brand: 'PESO',
   brandSub: 'Public Employment Service Office',
@@ -22,7 +24,7 @@ export default function App() {
   const [settings, setSettings] = useState(defaultSettings)
   const [photos, setPhotos] = useState([])
   const [activeIdx, setActiveIdx] = useState(0)
-  const [orientation, setOrientation] = useState('landscape') // 'landscape' | 'portrait'
+  const [orientation, setOrientation] = useState('landscape')
   const [exporting, setExporting] = useState(false)
   const [exportingAll, setExportingAll] = useState(false)
   const [frameSize, setFrameSize] = useState({ width: 820, height: 615 })
@@ -178,9 +180,10 @@ export default function App() {
           {/* LOGOS */}
           <div className="flex flex-col gap-2">
             <SectionLabel>Logos / Seals</SectionLabel>
-            <div className="grid grid-cols-2 gap-2">
-              <LogoDropZone label="Logo Left" onLoad={setS('logo1')} />
-              <LogoDropZone label="Logo Right" onLoad={setS('logo2')} />
+            <div className="grid grid-cols-3 gap-2">
+              <LogoDropZone label="Logo 1" onLoad={setS('logo1')} />
+              <LogoDropZone label="Logo 2" onLoad={setS('logo2')} />
+              <LogoDropZone label="Logo 3" onLoad={setS('logo3')} />
             </div>
           </div>
 

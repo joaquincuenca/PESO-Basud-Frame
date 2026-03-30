@@ -1,38 +1,8 @@
 import { useRef, useCallback, useEffect, useState } from 'react'
 
-// Header/footer: sky-blue at 52% opacity, overlaid on the photo
-const OVERLAY_BG = 'rgba(135,206,235,0.52)'
+const HEADER_BG = 'linear-gradient(to bottom, rgba(135,206,235,0.85) 0%, rgba(135,206,235,0.6) 60%, rgba(135,206,235,0) 100%)'
+const FOOTER_BG = 'linear-gradient(to top, rgba(135,206,235,0.85) 0%, rgba(135,206,235,0.6) 60%, rgba(135,206,235,0) 100%)'
 const ACCENT_YELLOW = '#f5c518'
-
-const DefaultSeal1 = () => (
-  <svg viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="25" cy="25" r="23" fill="#e8f4fb" stroke="#1a7bb5" strokeWidth="1.5"/>
-    <circle cx="25" cy="25" r="16" fill="none" stroke="#1a7bb5" strokeWidth="0.8" strokeDasharray="2 2"/>
-    <text x="25" y="20" textAnchor="middle" fill="#0a5a8a" fontSize="5.5" fontWeight="700" fontFamily="Arial">MUNICIPALITY</text>
-    <text x="25" y="28" textAnchor="middle" fill="#0a5a8a" fontSize="7" fontWeight="900" fontFamily="Arial">BASUD</text>
-    <text x="25" y="35" textAnchor="middle" fill="#0a5a8a" fontSize="5" fontWeight="600" fontFamily="Arial">CAM. NORTE</text>
-  </svg>
-)
-
-const DefaultSeal2 = () => (
-  <svg viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="25" cy="25" r="23" fill="#e8f4fb" stroke="#1a7bb5" strokeWidth="1.5"/>
-    <circle cx="25" cy="25" r="16" fill="none" stroke="#1a7bb5" strokeWidth="0.8" strokeDasharray="2 2"/>
-    <text x="25" y="19" textAnchor="middle" fill="#0a5a8a" fontSize="5" fontWeight="700" fontFamily="Arial">PUBLIC</text>
-    <text x="25" y="27" textAnchor="middle" fill="#1a7bb5" fontSize="11" fontWeight="900" fontFamily="Arial">₱</text>
-    <text x="25" y="35" textAnchor="middle" fill="#0a5a8a" fontSize="5" fontWeight="700" fontFamily="Arial">EMPLOYMENT</text>
-  </svg>
-)
-
-const DefaultSeal3 = () => (
-  <svg viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="25" cy="25" r="23" fill="#e8f4fb" stroke="#c0392b" strokeWidth="1.5"/>
-    <circle cx="25" cy="25" r="16" fill="none" stroke="#c0392b" strokeWidth="0.8" strokeDasharray="2 2"/>
-    <text x="25" y="20" textAnchor="middle" fill="#8b0000" fontSize="5.5" fontWeight="700" fontFamily="Arial">BASUD</text>
-    <text x="25" y="28" textAnchor="middle" fill="#c0392b" fontSize="8" fontWeight="900" fontFamily="Arial">PESO</text>
-    <text x="25" y="36" textAnchor="middle" fill="#8b0000" fontSize="4.5" fontWeight="600" fontFamily="Arial">CAM. NORTE</text>
-  </svg>
-)
 
 export function computeImageRect(containerW, containerH, imgW, imgH, transform) {
   const { x = 0, y = 0, scale = 1 } = transform || {}
@@ -57,6 +27,8 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
   const imgRef = useRef(null)
   const [frameW, setFrameW] = useState(820)
   const [frameH, setFrameH] = useState(461)
+
+  const isPortrait = orientation === 'portrait'
 
   useEffect(() => {
     if (!photo) { imgRef.current = null; drawCanvas(); return }
@@ -164,13 +136,11 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
 
   return (
     <div className="w-full" style={{ maxWidth: '100%', margin: '0 auto' }}>
-
-      {/* ── SINGLE CONTAINER: photo fills 100%, overlays sit on top ── */}
       <div
         ref={frameRef}
         className="relative w-full select-none overflow-hidden"
         style={{
-          aspectRatio: orientation === 'portrait' ? '3/4' : '4/3',
+          aspectRatio: isPortrait ? '3/4' : '4/3',
           background: '#111',
           boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
           borderRadius: 2,
@@ -184,8 +154,6 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-
-        {/* No-photo placeholder */}
         {!photo && (
           <div style={{
             position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column',
@@ -202,7 +170,6 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
           </div>
         )}
 
-        {/* Full-bleed canvas */}
         <canvas
           ref={canvasRef}
           width={frameW}
@@ -214,20 +181,23 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
           }}
         />
 
-        {/* ── HEADER OVERLAY — transparent over top of photo ── */}
+        {/* ── HEADER OVERLAY ── */}
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0,
-          background: OVERLAY_BG,
+          background: HEADER_BG,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: 'clamp(2px,0.45vw,6px) clamp(6px,1.1vw,14px)',
+          padding: isPortrait
+            ? 'clamp(2px,0.3vw,4px) clamp(6px,1.1vw,14px)'
+            : 'clamp(2px,0.45vw,6px) clamp(6px,1.1vw,14px)',
           zIndex: 10,
+          paddingBottom: isPortrait ? 'clamp(10px,2vw,20px)' : 'clamp(14px,2.5vw,28px)'
         }}>
           {/* Brand left */}
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1, gap: 0 }}>
             <span style={{
-              fontSize: 'clamp(5px,0.6vw,8px)',
+              fontSize: isPortrait ? 'clamp(4px,0.4vw,6px)' : 'clamp(5px,0.6vw,8px)',
               fontWeight: 900, letterSpacing: '2px',
               color: '#fff', textTransform: 'uppercase', fontFamily: 'Arial, sans-serif',
               textShadow: '0 1px 4px rgba(0,0,0,0.8)',
@@ -235,18 +205,18 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
               {eyebrow || 'BASUD, CAMARINES NORTE'}
             </span>
             <span style={{
-              fontSize: 'clamp(14px,2.8vw,36px)',
+              fontSize: isPortrait ? 'clamp(10px,1.8vw,22px)' : 'clamp(14px,2.8vw,36px)',
               fontWeight: 900, color: '#ff0000',
               letterSpacing: '-0.5px', lineHeight: 0.9,
               fontFamily: "'Arial Black', Impact, sans-serif",
               textTransform: 'uppercase',
               textShadow: '0 2px 8px rgba(0,0,0,0.6)',
-              marginBottom: '6px'
+              marginBottom: '4px'
             }}>
               {brand || 'PESO'}
             </span>
             <span style={{
-              fontSize: 'clamp(4px,0.5vw,7px)',
+              fontSize: isPortrait ? 'clamp(3px,0.35vw,5px)' : 'clamp(4px,0.5vw,7px)',
               fontWeight: 900, letterSpacing: '1.5px',
               color: '#fff', textTransform: 'uppercase', fontFamily: 'Arial, sans-serif',
               textShadow: '0 1px 4px rgba(0,0,0,0.8)',
@@ -255,41 +225,49 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
             </span>
           </div>
 
-          {/* Seals right */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'clamp(3px,0.55vw,7px)' }}>
+          {/* 3 Seals right */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: isPortrait ? 'clamp(2px,0.4vw,5px)' : 'clamp(3px,0.55vw,7px)' }}>
             {seals.map((logo, i) => (
               <div key={i} style={{
-                width: 'clamp(18px,2.8vw,36px)',
-                height: 'clamp(18px,2.8vw,36px)',
+                width:  isPortrait ? 'clamp(14px,1.8vw,24px)' : 'clamp(18px,2.8vw,36px)',
+                height: isPortrait ? 'clamp(14px,1.8vw,24px)' : 'clamp(18px,2.8vw,36px)',
                 borderRadius: '50%',
-                background: 'rgba(255,255,255,0.95)',
+                background: logo ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.15)',
                 boxShadow: '0 1px 5px rgba(0,0,0,0.3)',
+                border: logo ? 'none' : '1px dashed rgba(255,255,255,0.3)',
                 overflow: 'hidden', display: 'flex',
                 alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
-                {logo
-                  ? <img src={logo} alt="" draggable={false} style={{ width: '90%', height: '90%', objectFit: 'contain' }} />
-                  : i === 0 ? <DefaultSeal1 /> : i === 1 ? <DefaultSeal2 /> : <DefaultSeal3 />
-                }
+                {logo && (
+                  <img
+                    src={logo}
+                    alt=""
+                    draggable={false}
+                    style={{ width: '90%', height: '90%', objectFit: 'contain' }}
+                  />
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* ── FOOTER OVERLAY — transparent over bottom of photo ── */}
+        {/* ── FOOTER OVERLAY ── */}
         <div style={{
           position: 'absolute', bottom: 0, left: 0, right: 0,
-          background: OVERLAY_BG,
+          background: FOOTER_BG,
           display: 'flex',
           alignItems: 'center',
           gap: 'clamp(4px,0.8vw,10px)',
-          padding: 'clamp(2px,0.45vw,6px) clamp(6px,1.1vw,14px)',
+          padding: isPortrait
+            ? 'clamp(2px,0.3vw,4px) clamp(6px,1.1vw,14px)'
+            : 'clamp(2px,0.45vw,6px) clamp(6px,1.1vw,14px)',
+            
           zIndex: 10,
         }}>
-          {/* Yellow tagline — forced single row */}
+          {/* Yellow tagline */}
           <div style={{ flexShrink: 0 }}>
             <span style={{
-              fontSize: 'clamp(5px,0.7vw,9px)',
+              fontSize: isPortrait ? 'clamp(4px,0.5vw,7px)' : 'clamp(5px,0.7vw,9px)',
               fontWeight: 900, color: ACCENT_YELLOW,
               fontStyle: 'italic', textTransform: 'uppercase',
               letterSpacing: '0.4px', lineHeight: 1,
@@ -307,7 +285,7 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
           {/* Event info */}
           <div style={{ flex: 1, minWidth: 0, textAlign: 'center' }}>
             <div style={{
-              fontSize: 'clamp(6px,1vw,13px)',
+              fontSize: isPortrait ? 'clamp(5px,0.7vw,9px)' : 'clamp(6px,1vw,13px)',
               fontWeight: 900, color: '#fff',
               textTransform: 'uppercase', letterSpacing: '0.2px',
               lineHeight: 1.1,
@@ -318,7 +296,7 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
               {title || 'EVENT TITLE GOES HERE'}
             </div>
             <div style={{
-              fontSize: 'clamp(4px,0.55vw,7px)',
+              fontSize: isPortrait ? 'clamp(3px,0.38vw,5px)' : 'clamp(4px,0.55vw,7px)',
               fontWeight: 700, color: '#fff',
               textTransform: 'uppercase', letterSpacing: '1.2px',
               fontFamily: 'Arial, sans-serif',
@@ -328,7 +306,7 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
               {location || 'COVERED COURT BARANGAY BACTAS, BASUD CAMARINES NORTE'}
             </div>
             <div style={{
-              fontSize: 'clamp(5px,0.6vw,8px)',
+              fontSize: isPortrait ? 'clamp(4px,0.42vw,6px)' : 'clamp(5px,0.6vw,8px)',
               fontWeight: 900, color: '#fff',
               textTransform: 'uppercase', letterSpacing: '1.5px',
               fontFamily: "'Arial Black', sans-serif",
@@ -339,7 +317,6 @@ export function FramePreview({ data, transform, onTransformChange, onFrameSize, 
           </div>
         </div>
 
-        {/* Drag hint */}
         {photo && (
           <div style={{
             position: 'absolute', bottom: '14%', right: '1.5%',

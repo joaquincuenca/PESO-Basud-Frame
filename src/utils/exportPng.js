@@ -1,7 +1,5 @@
 import { computeImageRect } from '../components/FramePreview'
 
-// Must match FramePreview exactly
-const OVERLAY_COLOR = 'rgba(135,206,235,0.52)'
 const ACCENT_YELLOW = '#f5c518'
 
 function loadImg(src) {
@@ -43,20 +41,24 @@ export async function exportToPng(data) {
     ctx.drawImage(mainImg, drawX, drawY, drawW, drawH)
   }
 
-  // Shared measurements (proportional to canvas size)
-  const headerH = Math.round(H * 0.115)   // ~10–12% of height
-  const footerH = Math.round(H * 0.105)
-  const padX    = Math.round(W * 0.018)   // horizontal padding
+  const headerH = isPortrait ? Math.round(H * 0.10) : Math.round(H * 0.16)
+  const footerH = isPortrait ? Math.round(H * 0.09) : Math.round(H * 0.14)
+  const footerY = H - footerH   // ← declared here, used by both footer gradient and text
+  const padX    = Math.round(W * 0.018)
   const padY    = Math.round(headerH * 0.14)
 
-  // ── 2. HEADER OVERLAY ───────────────────────────────────────────────────
-  ctx.fillStyle = OVERLAY_COLOR
+  // ── 2. HEADER OVERLAY — fading gradient ──────────────────────────────────
+  const headerGrad = ctx.createLinearGradient(0, 0, 0, headerH)
+  headerGrad.addColorStop(0,   'rgba(135,206,235,0.85)')
+  headerGrad.addColorStop(0.6, 'rgba(135,206,235,0.6)')
+  headerGrad.addColorStop(1,   'rgba(135,206,235,0)')
+  ctx.fillStyle = headerGrad
   ctx.fillRect(0, 0, W, headerH)
 
   // — Brand (left) —
-  const eyebrowSize = Math.round(H * 0.013)
-  const brandSize   = Math.round(H * 0.075)
-  const subSize     = Math.round(H * 0.011)
+  const eyebrowSize = isPortrait ? Math.round(H * 0.009) : Math.round(H * 0.013)
+  const brandSize   = isPortrait ? Math.round(H * 0.048) : Math.round(H * 0.075)
+  const subSize     = isPortrait ? Math.round(H * 0.007) : Math.round(H * 0.011)
 
   // Eyebrow
   ctx.fillStyle = '#ffffff'
@@ -76,22 +78,25 @@ export async function exportToPng(data) {
   ctx.fillStyle = '#ffffff'
   ctx.font = `900 ${subSize}px Arial`
   ctx.shadowBlur = 4
-  ctx.fillText((brandSub || 'PUBLIC EMPLOYMENT SERVICE').toUpperCase(), padX, padY + eyebrowSize + brandSize + 2)
+  const gapAfterBrand = Math.round(H * 0.004)
+  ctx.fillText(
+    (brandSub || 'PUBLIC EMPLOYMENT SERVICE').toUpperCase(),
+    padX,
+    padY + eyebrowSize + Math.round(brandSize * 0.85) + gapAfterBrand
+  )
 
   ctx.shadowBlur = 0
   ctx.textBaseline = 'alphabetic'
 
   // — Seals (right) —
-  const sealSize = Math.round(headerH * 0.72)
-  const sealY    = (headerH - sealSize) / 2
-  const seals    = [logo1, logo2, logo3].filter(Boolean)
-  const allSeals = [logo1, logo2, logo3] // keep slots even if null
+  const sealSize = isPortrait ? Math.round(W * 0.055) : Math.round(W * 0.032)
+  const sealY = Math.round(headerH * 0.10)
+  const allSeals = [logo1, logo2, logo3]
 
   for (let i = 0; i < 3; i++) {
     const logoSrc = allSeals[i]
     const sealX = W - padX - sealSize - (2 - i) * (sealSize + Math.round(W * 0.008))
 
-    // White circle background
     ctx.save()
     ctx.beginPath()
     ctx.arc(sealX + sealSize / 2, sealY + sealSize / 2, sealSize / 2, 0, Math.PI * 2)
@@ -112,27 +117,29 @@ export async function exportToPng(data) {
     ctx.restore()
   }
 
-  // ── 3. FOOTER OVERLAY ───────────────────────────────────────────────────
-  const footerY = H - footerH
-  ctx.fillStyle = OVERLAY_COLOR
+  // ── 3. FOOTER OVERLAY — fading gradient ──────────────────────────────────
+  const footerGrad = ctx.createLinearGradient(0, footerY, 0, H)
+  footerGrad.addColorStop(0,   'rgba(135,206,235,0)')
+  footerGrad.addColorStop(0.4, 'rgba(135,206,235,0.6)')
+  footerGrad.addColorStop(1,   'rgba(135,206,235,0.85)')
+  ctx.fillStyle = footerGrad
   ctx.fillRect(0, footerY, W, footerH)
 
   const footerMidY   = footerY + footerH / 2
-  const taglineSize  = Math.round(H * 0.016)
-  const titleSize    = Math.round(H * 0.026)
-  const locationSize = Math.round(H * 0.013)
-  const dateSize     = Math.round(H * 0.016)
+  const taglineSize  = isPortrait ? Math.round(H * 0.011) : Math.round(H * 0.016)
+  const titleSize    = isPortrait ? Math.round(H * 0.018) : Math.round(H * 0.026)
+  const locationSize = isPortrait ? Math.round(H * 0.009) : Math.round(H * 0.013)
+  const dateSize     = isPortrait ? Math.round(H * 0.011) : Math.round(H * 0.016)
 
   ctx.shadowColor = 'rgba(0,0,0,0.8)'
 
-  // — Tagline (yellow, left, single row) —
+  // — Tagline (yellow, left) —
   ctx.fillStyle = ACCENT_YELLOW
   ctx.font = `900 italic ${taglineSize}px Arial Black, Arial`
   ctx.textBaseline = 'middle'
   ctx.shadowBlur = 4
   ctx.fillText((tagline || 'SERBISYONG BASUDEÑO!').toUpperCase(), padX, footerMidY)
 
-  // Measure tagline width for divider position
   const taglineW = ctx.measureText((tagline || 'SERBISYONG BASUDEÑO!').toUpperCase()).width
   const dividerX = padX + taglineW + Math.round(W * 0.012)
 
@@ -154,7 +161,6 @@ export async function exportToPng(data) {
   ctx.font = `900 ${titleSize}px Arial Black, Arial`
   ctx.shadowBlur = 8
   const titleText = (title || 'EVENT TITLE GOES HERE').toUpperCase()
-  // Measure and shrink if too wide
   let fSize = titleSize
   while (ctx.measureText(titleText).width > (W - dividerX - padX * 2) && fSize > 8) {
     fSize -= 1
